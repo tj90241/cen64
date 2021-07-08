@@ -136,9 +136,24 @@ int cen64_main(int argc, const char **argv) {
         }
         break;
       case CART_DB_SAVE_TYPE_SRAM_256KBIT:
+        sram.size = 0x8000;
         if (options.sram_path == NULL) {
           printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
           open_save_file(NULL, 0x8000, &sram, NULL);
+        }
+        break;
+      case CART_DB_SAVE_TYPE_SRAM_768KBIT:
+        sram.size = 0x18000;
+        if (options.sram_path == NULL) {
+          printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
+          open_save_file(NULL, sram.size, &sram, NULL);
+        }
+        break;
+      case CART_DB_SAVE_TYPE_SRAM_1MBIT:
+        sram.size = 0x20000;
+        if (options.sram_path == NULL) {
+          printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
+          open_save_file(NULL, sram.size, &sram, NULL);
         }
         break;
     }
@@ -156,7 +171,7 @@ int cen64_main(int argc, const char **argv) {
   }
 
   if (options.sram_path != NULL &&
-      open_save_file(options.sram_path, 0x8000, &sram, NULL)) {
+      open_save_file(options.sram_path, options.sram_size, &sram, NULL)) {
     cen64_alloc_cleanup();
     return EXIT_FAILURE;
   }

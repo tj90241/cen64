@@ -58,11 +58,11 @@ static int pi_dma_read(struct pi_controller *pi) {
     length -= source & 0x7;
 
   // SRAM and FlashRAM
-  if (dest >= 0x08000000 && dest < 0x08010000) {
+  if (dest >= 0x08000000 && dest < 0x08020000) {
     uint32_t addr = dest & 0x00FFFFF;
 
     // SRAM
-    if (pi->sram->ptr != NULL && addr + length <= 0x8000)
+    if (pi->sram->ptr != NULL && addr + length <= pi->sram->size)
       memcpy((uint8_t *) (pi->sram->ptr) + addr, pi->bus->ri->ram + source, length);
 
     // FlashRAM: Save the RDRAM destination address. Writing happens
@@ -112,10 +112,10 @@ static int pi_dma_write(struct pi_controller *pi) {
     dd_dma_write(pi->bus->dd, source, dest, length);
 
   // SRAM and FlashRAM
-  else if (source >= 0x08000000 && source < 0x08010000) {
+  else if (source >= 0x08000000 && source < 0x08020000) {
     uint32_t addr = source & 0x00FFFFF;
 
-    if (pi->sram->ptr != NULL && addr + length <= 0x8000)
+    if (pi->sram->ptr != NULL && addr + length <= pi->sram->size)
       memcpy(pi->bus->ri->ram + dest, (const uint8_t *) (pi->sram->ptr) + addr, length);
 
     else if (pi->flashram.data != NULL) {
