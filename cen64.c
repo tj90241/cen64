@@ -136,24 +136,27 @@ int cen64_main(int argc, const char **argv) {
         }
         break;
       case CART_DB_SAVE_TYPE_SRAM_256KBIT:
-        options.sram_size = 0x8000;
         if (options.sram_path == NULL) {
-          printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
-          open_save_file(NULL, options.sram_size, &sram, NULL);
+          printf("Warning: cart saves to 256kbit SRAM, but none specified (see -sram256k)\n");
+          open_save_file(NULL, 0x8000, &sram, NULL);
+        } else if (options.sram_size != 0x8000) {
+          printf("Warning: cart saves to 256kbit SRAM, but different size specified (see -sram256k)\n");
         }
         break;
       case CART_DB_SAVE_TYPE_SRAM_768KBIT:
-        options.sram_size = 0x18000;
         if (options.sram_path == NULL) {
-          printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
-          open_save_file(NULL, options.sram_size, &sram, NULL);
+          printf("Warning: cart saves to 768kbit SRAM, but none specified (see -sram768k)\n");
+          open_save_file(NULL, 0x18000, &sram, NULL);
+        } else if (options.sram_size != 0x18000) {
+          printf("Warning: cart saves to 768kbit SRAM, but different size specified (see -sram768k)\n");
         }
         break;
       case CART_DB_SAVE_TYPE_SRAM_1MBIT:
-        options.sram_size = 0x20000;
         if (options.sram_path == NULL) {
-          printf("Warning: cart saves to SRAM, but none specified (see -sram)\n");
-          open_save_file(NULL, options.sram_size, &sram, NULL);
+          printf("Warning: cart saves to 1mbit SRAM, but none specified (see -sram1m)\n");
+          open_save_file(NULL, 0x20000, &sram, NULL);
+        } else if (options.sram_size != 0x20000) {
+          printf("Warning: cart saves to 1mbit SRAM, but different size specified (see -sram1m)\n");
         }
         break;
     }
