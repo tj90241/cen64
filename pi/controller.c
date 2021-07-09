@@ -57,13 +57,22 @@ static int pi_dma_read(struct pi_controller *pi) {
   if (source & 0x7)
     length -= source & 0x7;
 
-  // SRAM and FlashRAM
-  if (dest >= 0x08000000 && dest < 0x08020000) {
-    uint32_t addr = dest & 0x00FFFFF;
+  // Cartridge Domain 2 Address 2
+  if (dest >= 0x08000000 && dest < 0x10000000) {
+    uint32_t sram_768kbit_bank = (dest >> 18) & 3;
+    uint32_t ram_addr = dest & 0x001FFFF;
 
-    // SRAM
-    if (pi->sram->ptr != NULL && addr + length <= pi->sram->size)
-      memcpy((uint8_t *) (pi->sram->ptr) + addr, pi->bus->ri->ram + source, length);
+    // 768Kbit SRAM
+    if (sram_768kbit_bank) {
+      ram_addr += sram_768kbit_bank * 0x8000;
+      if (pi->sram->size == 0x18000 && pi->sram->ptr != NULL && ram_addr + length <= pi->sram->size) {
+        memcpy((uint8_t *) (pi->sram->ptr) + ram_addr, pi->bus->ri->ram + source, length);
+      }
+    }
+
+    // 256Kbit or 1Mbit SRAM
+    else if (pi->sram->ptr != NULL && ram_addr + length <= pi->sram->size)
+      memcpy((uint8_t *) (pi->sram->ptr) + ram_addr, pi->bus->ri->ram + source, length);
 
     // FlashRAM: Save the RDRAM destination address. Writing happens
     // after the system sends the flash write command (handled in
@@ -111,23 +120,32 @@ static int pi_dma_write(struct pi_controller *pi) {
   else if ((source & 0x05000000) == 0x05000000)
     dd_dma_write(pi->bus->dd, source, dest, length);
 
-  // SRAM and FlashRAM
-  else if (source >= 0x08000000 && source < 0x08020000) {
-    uint32_t addr = source & 0x00FFFFF;
+  // Cartridge Domain 2 Address 2
+  else if (source >= 0x08000000 && source < 0x10000000) {
+    uint32_t sram_768kbit_bank = (source >> 18) & 3;
+    uint32_t ram_addr = source & 0x001FFFF;
 
-    if (pi->sram->ptr != NULL && addr + length <= pi->sram->size)
-      memcpy(pi->bus->ri->ram + dest, (const uint8_t *) (pi->sram->ptr) + addr, length);
+    // 768Kbit SRAM
+    if (sram_768kbit_bank) {
+      ram_addr += (sram_768kbit_bank * 0x8000);
+      if (pi->sram->size == 0x18000 && pi->sram->ptr != NULL && ram_addr + length <= pi->sram->size)
+        memcpy(pi->bus->ri->ram + dest, (const uint8_t *) (pi->sram->ptr) + ram_addr, length);
+    }
 
+    // 256Kbit or 1Mbit SRAM
+    else if (pi->sram->ptr != NULL && ram_addr + length <= pi->sram->size)
+      memcpy(pi->bus->ri->ram + dest, (const uint8_t *) (pi->sram->ptr) + ram_addr, length);
+
+    // FlashRAM
     else if (pi->flashram.data != NULL) {
-      // SRAM
+      // FlashRAM status
       if (pi->flashram.mode == FLASHRAM_STATUS) {
         uint64_t status = htonll(pi->flashram.status);
         memcpy(pi->bus->ri->ram + dest, &status, 8);
       }
-
-      // FlashRAM
+      // FlashRAM read
       else if (pi->flashram.mode == FLASHRAM_READ)
-        memcpy(pi->bus->ri->ram + dest, pi->flashram.data + addr * 2, length);
+        memcpy(pi->bus->ri->ram + dest, pi->flashram.data + ram_addr * 2, length);
     }
   }
 
