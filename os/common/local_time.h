@@ -34,5 +34,12 @@ static inline uint8_t byte2bcd(unsigned byte) {
   return ((byte / 10) << 4) | (byte % 10);
 }
 
+static inline uint8_t bcd2byte(uint8_t bcd)
+{
+    uint8_t hi = (bcd & 0xF0) >> 4;
+    uint8_t lo = bcd & 0x0F;
+    return (hi * 10) + lo;
+}
+
 #endif
 

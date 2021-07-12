@@ -11,6 +11,7 @@
 #ifndef __si_controller_h__
 #define __si_controller_h__
 #include "common.h"
+#include "local_time.h"
 #include "si/pak.h"
 #include "dd/controller.h"
 
@@ -30,6 +31,11 @@ struct eeprom {
   size_t size;
 };
 
+struct rtc {
+  uint16_t control;
+  struct time_stamp now;
+};
+
 struct si_controller {
   struct bus_controller *bus;
   const uint8_t *rom;
@@ -40,6 +46,7 @@ struct si_controller {
   uint32_t pif_status;
   uint8_t input[4];
   struct eeprom eeprom;
+  struct rtc rtc;
   struct controller controller[4];
 };
 
