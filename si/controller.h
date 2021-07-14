@@ -34,6 +34,7 @@ struct eeprom {
 struct rtc {
   uint16_t control;
   struct time_stamp now;
+  int32_t offset_seconds;
 };
 
 struct si_controller {

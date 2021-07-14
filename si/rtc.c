@@ -14,8 +14,9 @@
 
 void rtc_init(struct rtc * rtc) {
   /* Write-protected, timer enabled */
-  rtc->control = 0x0304;
-  get_local_time(&rtc->now);
+  rtc->control = 0x0300;
+  rtc->offset_seconds = 0;
+  get_local_time(&rtc->now, rtc->offset_seconds);
 }
 
 static inline uint8_t rtc_control_status(struct rtc * rtc) {
@@ -60,9 +61,9 @@ int rtc_read(struct rtc * rtc,
       break;
 
     case 2:
-      // Update date/time if timer is enabled
-      if (rtc->control & 0x0004) {
-        get_local_time(&rtc->now);
+      // Update date/time if timer not paused
+      if ((rtc->control & 0x0004) == 0) {
+        get_local_time(&rtc->now, rtc->offset_seconds);
       }
       recv_buf[0] = byte2bcd(rtc->now.sec);
       recv_buf[1] = byte2bcd(rtc->now.min);
@@ -115,7 +116,10 @@ int rtc_write(struct rtc * rtc,
       rtc->now.day = bcd2byte(send_buf[5]);
       rtc->now.week_day = bcd2byte(send_buf[6]);
       rtc->now.month = bcd2byte(send_buf[7]);
-      rtc->now.year = bcd2byte(send_buf[8]) + (bcd2byte(send_buf[9]) * 100);
+      rtc->now.year = bcd2byte(send_buf[8]);
+      rtc->now.year += bcd2byte(send_buf[9]) * 100;
+      // Set the clock offset based on current local time
+      rtc->offset_seconds = get_offset_seconds(&rtc->now);
       break;
 
     default:
