@@ -577,7 +577,7 @@ void set_offset(struct dd_controller *dd) {
 
 void get_dd_time(uint8_t *out) {
   struct time_stamp now;
-  get_local_time(&now);
+  get_local_time(&now, 0);
 
   out[0] = byte2bcd(now.year);
   out[1] = byte2bcd(now.month);
